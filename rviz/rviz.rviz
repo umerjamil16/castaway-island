@@ -54,6 +54,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        map:
+          Value: true
         robot_0/base_footprint:
           Value: true
         robot_0/base_laser_link:
@@ -76,7 +78,17 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          robot_0/odom:
+            robot_0/base_footprint:
+              robot_0/base_link:
+                robot_0/base_laser_link:
+                  {}
+          robot_1/odom:
+            robot_1/base_footprint:
+              robot_1/base_link:
+                robot_1/base_laser_link:
+                  {}
       Update Interval: 0
       Value: true
   Enabled: true

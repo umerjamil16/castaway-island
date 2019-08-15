@@ -10,26 +10,20 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 pub = None
 
+# /robot_0/odom subscriber callback
 def sub0_callback(msg):
     global r0_x, r0_y
     pose_q = msg.pose.pose.position
     r0_x = pose_q.x
     r0_y = pose_q.y
-    #rospy.loginfo(" X0: " + str(r0_x) +  " Y0: " + str(r0_y))
-def sub1_callback(msg):
-    global r1_x, r1_y
-    pose_q = msg.pose.pose.position
-    r1_x = pose_q.x 
-    r1_y = pose_q.y 
-    #rospy.loginfo(" X1: " + str(r1_x) +  " Y1: " + str(r1_y))
 
+# /robot_0/base_scan subscriber callback
 def clbk_laser(msg):
     global shark_speed
     laser_reading =  (msg.ranges[540])
     global dist
-    #rospy.loginfo( "DIST: " + str(dist))
     if (laser_reading < 0.13 or laser_reading > 5.45):
-        if dist > 0.30:#< 3:
+        if dist > 0.30:
             global past_time
             now = rospy.get_rostime()
             net_time =  now - past_time
@@ -37,39 +31,23 @@ def clbk_laser(msg):
             shark_speed = 0
             rospy.signal_shutdown('Quit')
     else:
-        rospy.loginfo("CASTAWAY MOVING TOWARDS BOUNDRY")
-#    if (laser_reading > 0.1 or laser_reading < 5.45):
- #       if dist > 5:
-  #          rospy.loginfo("SHARK REACHED FIRST")
-    
+        rospy.loginfo("Castaway moving towards boundry")
  
 if __name__ == '__main__':
     rospy.init_node('castaway_strategy')
-    past_time = 0
-    iter_loop = 0
-    #global pub, v_x, w_z
-    dist = 0
-    r0_x = 0
-    r0_y = 0
-    r1_x = 0
-    r1_y = 0
+    past_time = 0 # for time stamp
+    iter_loop = 0 # to keep track the iteration of a while loop, used to update past_time only once in while loop
 
-    island_radius = 3.0
-    shark_speed = 0.5
+    dist = 0 #represents distance between robot_0 and robot_1
+    r0_x = 0 #robot_x position
+    r0_y = 0 #robot_y position
+
+    island_radius = 3.0 # radius of island
+    shark_speed = 0.5 # shark speed
 
     listener = tf.TransformListener()
-    pub = rospy.Publisher('robot_1/cmd_vel', geometry_msgs.msg.Twist, queue_size=10)
-    per_vel = rospy.Publisher('robot_0/cmd_vel', geometry_msgs.msg.Twist, queue_size=10)
-
-    """"
-    rospy.wait_for_service('/get_robot_0_pos')
-    bb8_move_srv_client = rospy.ServiceProxy('/get_robot_0_pos', GoalCustomSrv)
-    bb8_move_srv_client_obj = GoalCustomSrvRequest() 
-    rospy.loginfo("Doing Service Call...")
-    result = bb8_move_srv_client(bb8_move_srv_client_obj)
-    r0_x = result.t
-    """
-    rospy.loginfo("P_x: " + str(r0_x))
+    pub0 = rospy.Publisher('robot_0/cmd_vel', geometry_msgs.msg.Twist, queue_size=10)
+    pub1 = rospy.Publisher('robot_1/cmd_vel', geometry_msgs.msg.Twist, queue_size=10)
 
     rate = rospy.Rate(10.0)
 
@@ -84,33 +62,28 @@ if __name__ == '__main__':
             rospy.loginfo("TF not found")            
             continue
         
-        if iter_loop == 0:
+        if iter_loop == 0: # to update past_time var only once in loop
             past_time = rospy.get_rostime()
 
         iter_loop = iter_loop + 1
 
         vel_msg1 = geometry_msgs.msg.Twist()
-        vel_msg1.angular.z = 0#4 * math.atan2(trans1[1], trans1[0])
-        vel_msg1.linear.x = shark_speed/4#-4.5 * math.sqrt(trans1[0] ** 2 + trans1[1] ** 2)
-        per_vel.publish(vel_msg1)
+        vel_msg1.angular.z = 0
+        vel_msg1.linear.x = shark_speed/4 # given that castaway speed is 1/4 of shark speed
+        pub0.publish(vel_msg1)
 
-
-        pub = rospy.Publisher('robot_1/cmd_vel', geometry_msgs.msg.Twist, queue_size=10)
         d2 = math.sqrt(trans1[0] ** 2 + trans1[1] ** 2)
         dist = d2
         d1 = math.sqrt(trans[0] ** 2 + trans[1] ** 2)
-        dist_bw_shark_ca = 3 - d1 + 0.03
+        dist_bw_shark_ca = island_radius - d1 + 0.03 # 0.03 is the upper tolerance
 
-        #print "r0_0: " + str(d1) + "Thres: " + str(dist_bw_shark_ca) + "SHK DIST: " + str(d2)
-
-        #rospy.loginfo("ROB_0 x: " + str(r0_x) + " y: " + str(r0_y))
         vel_msg = geometry_msgs.msg.Twist()
         if d2 > dist_bw_shark_ca:
             rospy.loginfo("Shark moving towards castaway")
             rate = rospy.Rate(10.0)            
             if r0_x > 0:
                 vel_msg.linear.x = shark_speed
-                vel_msg.angular.z = -1 * shark_speed/island_radius
+                vel_msg.angular.z = -1 * shark_speed/island_radius # v = r * omega implementation
             elif r0_x < 0:
                 vel_msg.linear.x = -1 * shark_speed
                 vel_msg.angular.z = shark_speed/island_radius
@@ -126,11 +99,10 @@ if __name__ == '__main__':
 
         rate = rospy.Rate(10.0)
 
-    #while not rospy.is_shutdown():
-        pub.publish(vel_msg)
-        sub = rospy.Subscriber('/robot_0/base_scan', LaserScan, clbk_laser)
+
+        pub1.publish(vel_msg)
+        sub_laser_scanner = rospy.Subscriber('/robot_0/base_scan', LaserScan, clbk_laser)
         sub0 = rospy.Subscriber ('/robot_0/odom', Odometry, sub0_callback)
-        sub1 = rospy.Subscriber ('/robot_1/odom', Odometry, sub1_callback)
+
 
         rate.sleep()
-#    rospy.spin()
