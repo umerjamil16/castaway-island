@@ -1,0 +1,14 @@
+    if br_x > 0:
+        if br_y > 0:
+            rospy.loginfo("1 quad")
+            goal_yaw = goal_yaw - 3.14 - 0.52333/2
+        elif br_y < 0:
+            rospy.loginfo("4 quad")
+            goal_yaw = goal_yaw + 3.14/2 - 0.52333/2
+    elif br_x < 0:
+        if br_y > 0:
+            rospy.loginfo("2 quad")
+            goal_yaw =  goal_yaw + 0.52333/2
+        elif br_y < 0:
+            rospy.loginfo("3 quad")
+            goal_yaw =  goal_yaw - 0.52333 - 0.52333/2

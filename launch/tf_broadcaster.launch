@@ -1,0 +1,14 @@
+<launch>
+
+
+  <node pkg="tf"
+        type="static_transform_publisher"
+        name="robot_0_map_tf_broadcaster"
+        args="0 0 0 1.57 0 0 /map /robot_0/odom 1000" output="screen"/>
+  <node pkg="tf" 
+        type="static_transform_publisher" 
+        name="robot_1_map_tf_broadcaster"
+        args="-3 0 0 1.57 0 0 /map /robot_1/odom 1000" output="screen"/>
+
+</launch>
+
