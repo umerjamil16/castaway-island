@@ -95,6 +95,10 @@ if __name__ == '__main__':
             net_time1 =  now - past_time
             rospy.loginfo("SHARK REACHED IN FRONT OF CASTAWAY IN " + str(net_time1.secs)  + " SECS")
             rospy.loginfo("CASTAWAY CANNOT ESCAPE, MOVE THE CASTAWAY TO ANOTHER LOCATION AND TRY AGAIN")
+            vel_msg1 = geometry_msgs.msg.Twist()
+            vel_msg1.angular.z = 0
+            vel_msg1.linear.x = 0 # given that castaway speed is 1/4 of shark speed
+            pub0.publish(vel_msg1)      #to stop robot_0      
             rospy.signal_shutdown('Quit')
 
         rate = rospy.Rate(10.0)
