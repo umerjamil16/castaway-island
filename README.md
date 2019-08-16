@@ -24,7 +24,9 @@ In another terminal, run the following command so that we can see the distance o
 To change the position of the castaway in the 2D world, run the following command in a terminal:
 ```rosrun teleop_twist_keyboard teleop_twist_keyboard.py cmd_vel:=/robot_0/cmd_vel```
 
-Now, move the castaway outside the circle of radius r_i (As per calculations. In this simulation environment, the island radius of 3m for which r_i becomes 0.645m). Set the heading of castaway in the direction towards which it will move when we run the main program file. 
+Now, move the castaway outside the circle of radius r_i (As per calculations. In this simulation environment, the island radius of 3m for which r_i becomes 0.645m). 
+
+Important: Set the heading of castaway in the direction towards which it will move when we run the main program file. 
 
 Now run the main program file as follows:
 ```rosrun ca_main strategy.py```
